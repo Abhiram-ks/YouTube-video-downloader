@@ -1,6 +1,7 @@
-import 'package:bizforz/core/theme/app_palette.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:videodownload/core/theme/app_palette.dart';
 
 class AppTheme {
   // Light Theme
