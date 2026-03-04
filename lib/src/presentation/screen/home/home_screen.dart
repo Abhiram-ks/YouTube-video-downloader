@@ -1,19 +1,13 @@
 import 'dart:math' as math;
-import 'package:bizforz/core/common/custom_button.dart';
-import 'package:bizforz/core/common/custom_inputbox.dart';
-import 'package:bizforz/core/common/custom_network_builder.dart';
-import 'package:bizforz/core/common/custom_shadow.dart';
-import 'package:bizforz/core/constants/app_constant.dart';
-
-import 'package:bizforz/core/theme/app_palette.dart';
-import 'package:bizforz/src/presentation/state/bloc/video_analysis_bloc/video_analysis_bloc.dart';
-import 'package:bizforz/src/presentation/state/bloc/video_analysis_bloc/video_analysis_event.dart';
-import 'package:bizforz/src/presentation/state/bloc/video_analysis_bloc/video_analysis_state.dart';
-import 'package:bizforz/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:bizforz/core/debouncer/debouncer.dart';
+import 'package:videodownload/core/debouncer/debouncer.dart';
+import 'package:videodownload/core/theme/app_palette.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_bloc.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_state.dart';
+import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
+import 'package:videodownload/src/presentation/widget/home/home_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           } else if (state is VideoAnalysisSuccess) {
             context.read<ProgresserCubit>().stopLoading();
-            _showVideoDetails(context, state);
+            showVideoDetails(context: context,state: state);
           } else if (state is VideoAnalysisFailure) {
             context.read<ProgresserCubit>().stopLoading();
             ScaffoldMessenger.of(context).showSnackBar(
