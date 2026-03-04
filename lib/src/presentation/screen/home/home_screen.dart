@@ -1,13 +1,17 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:videodownload/core/common/custom_button.dart';
+import 'package:videodownload/core/common/custom_inputbox.dart';
+import 'package:videodownload/core/common/custom_loading.dart';
+import 'package:videodownload/core/common/custom_shadow.dart';
 import 'package:videodownload/core/debouncer/debouncer.dart';
 import 'package:videodownload/core/theme/app_palette.dart';
-import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_bloc.dart';
-import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_state.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analyse_bloc/bloc/video_analyse_bloc.dart';
 import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 import 'package:videodownload/src/presentation/widget/home/home_widget.dart';
+
+import '../../../../core/constants/app_constant.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,16 +34,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocListener<VideoAnalysisBloc, VideoAnalysisState>(
+      body: BlocListener<VideoAnalyseBloc, VideoAnalyseState>(
         listener: (context, state) {
-          if (state is VideoAnalysisLoading) {
+          if (state is VideoAnalyseLoading) {
             context.read<ProgresserCubit>().startLoading(
               message: "Processing...",
             );
-          } else if (state is VideoAnalysisSuccess) {
+          } else if (state is VideoAnalyseSuccess) {
             context.read<ProgresserCubit>().stopLoading();
-            showVideoDetails(context: context,state: state);
-          } else if (state is VideoAnalysisFailure) {
+            showVideoDetails(context: context, video: state.videoDetails);
+          } else if (state is VideoAnalyseFailure) {
             context.read<ProgresserCubit>().stopLoading();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -112,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           loadingText: "Processing",
                           onPressed: () {
                             _debouncer.run(() {
-                              context.read<VideoAnalysisBloc>().add(
+                              context.read<VideoAnalyseBloc>().add(
                                 AnalyzeVideoLink(_urlController.text),
                               );
                             });
@@ -125,42 +129,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             // Circular progress stack top
-            BlocBuilder<VideoAnalysisBloc, VideoAnalysisState>(
+            BlocBuilder<VideoAnalyseBloc, VideoAnalyseState>(
               builder: (context, state) {
-                if (state is VideoAnalysisLoading) {
-                  return Container(
-                    color: AppPalette.black.withValues(alpha: 0.2),
-                    child: Center(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24.w,
-                          vertical: 20.h,
-                        ),
-                        decoration: customBoxDecoration(borderRadius: 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              height: 24.w,
-                              width: 24.w,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppPalette.blue,
-                              ),
-                            ),
-                            Constant.height(16),
-                            Text(
-                              "Processing your request...",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            Text(
-                              "Please wait a moment",
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                if (state is VideoAnalyseLoading) {
+                  return customLoading(
+                    context: context,
+                    title: "Processing your request...",
                   );
                 }
                 return const SizedBox.shrink();
@@ -170,23 +144,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, "0");
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    if (duration.inHours > 0) {
-      return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
-    }
-    return "$twoDigitMinutes:$twoDigitSeconds";
-  }
-
-  String _formatSize(int bytes) {
-    if (bytes <= 0) return "0 B";
-    const suffixes = ["B", "KB", "MB", "GB", "TB"];
-    var i = (math.log(bytes) / math.log(1024)).floor();
-    return "${(bytes / math.pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}";
   }
 }

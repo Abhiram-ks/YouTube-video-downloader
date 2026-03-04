@@ -2,7 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:videodownload/core/constants/app_constant.dart';
 import 'package:videodownload/core/theme/app_palette.dart';
+import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
