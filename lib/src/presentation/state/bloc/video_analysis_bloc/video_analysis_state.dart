@@ -1,5 +1,6 @@
 import 'package:bizforz/src/domain/entity/video_details.dart';
 import 'package:flutter/foundation.dart';
+import 'package:videodownload/src/domain/entity/video_details.dart';
 
 @immutable
 abstract class VideoAnalysisState {}

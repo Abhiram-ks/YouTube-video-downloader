@@ -1,13 +1,15 @@
 
-  import 'package:bizforz/core/common/custom_network_builder.dart';
-import 'package:bizforz/core/common/custom_shadow.dart';
-import 'package:bizforz/core/constants/app_constant.dart';
-import 'package:bizforz/core/theme/app_palette.dart';
-import 'package:bizforz/src/presentation/state/bloc/video_analysis_bloc/video_analysis_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:videodownload/core/common/custom_network_builder.dart';
+import 'package:videodownload/core/common/custom_shadow.dart';
+import 'package:videodownload/core/theme/app_palette.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_state.dart';
 
-void _showVideoDetails(BuildContext context, VideoAnalysisSuccess state) {
+void showVideoDetails({
+required BuildContext context,
+required VideoAnalysisSuccess state
+}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -71,7 +73,7 @@ void _showVideoDetails(BuildContext context, VideoAnalysisSuccess state) {
                                     borderRadius: 4,
                                   ),
                                   child: Text(
-                                    _formatDuration(
+                                    formatDuration(
                                       state.videoDetails.duration,
                                     ),
                                     style: TextStyle(

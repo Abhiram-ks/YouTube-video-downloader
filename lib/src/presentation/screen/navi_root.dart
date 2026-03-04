@@ -1,12 +1,13 @@
-import 'package:bizforz/core/theme/app_palette.dart';
-import 'package:bizforz/src/presentation/screen/home/home_screen.dart';
-import 'package:bizforz/src/presentation/screen/library/library_screen.dart';
-import 'package:bizforz/core/di/di.dart';
-import 'package:bizforz/src/presentation/state/bloc/video_analysis_bloc/video_analysis_bloc.dart';
-import 'package:bizforz/src/presentation/state/cubit/nav_cubit.dart';
-import 'package:bizforz/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:videodownload/core/di/di.dart';
+import 'package:videodownload/core/theme/app_palette.dart';
+import 'package:videodownload/src/presentation/screen/home/home_screen.dart';
+import 'package:videodownload/src/presentation/screen/library/library_screen.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analysis_bloc/video_analysis_bloc.dart';
+import 'package:videodownload/src/presentation/state/cubit/nav_cubit.dart';
+import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 
 const double bottomNavBarHeight = 70.0;
 
