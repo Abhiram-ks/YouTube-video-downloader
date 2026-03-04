@@ -27,6 +27,7 @@ class AppRoute {
           return VideoPlayerScreen(
             url: extras['url'] as String,
             title: extras['title'] as String,
+            isLocal: extras['isLocal'] as bool? ?? false,
           );
         },
       ),

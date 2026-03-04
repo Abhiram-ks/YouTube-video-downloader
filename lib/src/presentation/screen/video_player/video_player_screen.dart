@@ -10,13 +10,20 @@ import 'package:videodownload/src/presentation/state/cubit/video_player_cubit/vi
 class VideoPlayerScreen extends StatelessWidget {
   final String url;
   final String title;
+  final bool isLocal;
 
-  const VideoPlayerScreen({super.key, required this.url, required this.title});
+  const VideoPlayerScreen({
+    super.key,
+    required this.url,
+    required this.title,
+    this.isLocal = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<VideoPlayerCubit>()..initializePlayer(url),
+      create: (context) =>
+          sl<VideoPlayerCubit>()..initializePlayer(url, isLocal: isLocal),
       child: Scaffold(
         backgroundColor: AppPalette.black,
         appBar: AppBar(
@@ -24,9 +31,9 @@ class VideoPlayerScreen extends StatelessWidget {
           elevation: 0,
           title: Text(
             title,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppPalette.white,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: AppPalette.white),
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppPalette.white),
@@ -41,7 +48,9 @@ class VideoPlayerScreen extends StatelessWidget {
                     state is VideoPlayerInitial) {
                   return customLoading(
                     context: context,
-                    title: "Preparing preview..."
+                    title: isLocal
+                        ? "Decrypting video..."
+                        : "Preparing preview...",
                   );
                 } else if (state is VideoPlayerLoaded) {
                   return AspectRatio(
@@ -49,9 +58,24 @@ class VideoPlayerScreen extends StatelessWidget {
                     child: Chewie(controller: state.chewieController),
                   );
                 } else if (state is VideoPlayerError) {
-                  return Text(
-                    state.message,
-                    style: const TextStyle(color: AppPalette.white),
+                  return Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 48,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          state.message,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppPalette.white),
+                        ),
+                      ],
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
