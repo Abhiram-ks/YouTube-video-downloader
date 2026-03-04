@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:videodownload/core/common/custom_network_builder.dart';
@@ -8,6 +9,8 @@ import 'package:videodownload/core/router/router.dart';
 import 'package:videodownload/core/theme/app_palette.dart';
 import 'package:videodownload/core/utils/fromat/format.dart';
 import 'package:videodownload/src/domain/entity/video_details.dart';
+import 'package:videodownload/src/presentation/state/bloc/download_bloc/download_bloc.dart';
+import 'package:videodownload/src/presentation/state/cubit/navi_cubit/nav_cubit.dart';
 
 void showVideoDetails({
   required BuildContext context,
@@ -29,7 +32,6 @@ void showVideoDetails({
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Drag Handle
                 Container(
                   padding: EdgeInsets.symmetric(vertical: 12.h),
                   width: double.infinity,
@@ -44,7 +46,6 @@ void showVideoDetails({
                     ),
                   ),
                 ),
-                // Scrollable Content
                 Flexible(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -64,14 +65,12 @@ void showVideoDetails({
                           },
                           child: Stack(
                             children: [
-                              ClipRRect(
+                              customNetworkBuilder(
+                                imageUrl: video.thumbnailUrl,
+                                aspectRatio: 16 / 9,
+                                boxfit: BoxFit.cover,
+                                width: double.infinity,
                                 borderRadius: BorderRadius.circular(16.r),
-                                child: customNetworkBuilder(
-                                  imageUrl: video.thumbnailUrl,
-                                  aspectRatio: 16 / 9,
-                                  boxfit: BoxFit.cover,
-                                  width: double.infinity,
-                                ),
                               ),
                               Positioned.fill(
                                 child: Center(
@@ -127,16 +126,12 @@ void showVideoDetails({
                         Constant.height(8),
                         Row(
                           children: [
-                            ClipOval(
-                              child: Container(
-                                height: 30.w,
-                                width: 30.w,
-                                decoration: customBoxDecoration(
-                                  shape: BoxShape.circle,
-                                ),
-                                child: customNetworkBuilder(
-                                  imageUrl: video.logo,
-                                ),
+                            customNetworkBuilder(
+                              imageUrl: video.logo,
+                              width: 30.w,
+                              height: 30.w,
+                              decoration: customBoxDecoration(
+                                shape: BoxShape.circle,
                               ),
                             ),
                             Constant.width(8),
@@ -161,13 +156,14 @@ void showVideoDetails({
                             return InkWell(
                               borderRadius: BorderRadius.circular(12.r),
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      "Preparing ${option.qualityLabel} for download...",
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
+                                context.read<DownloadBloc>().add(
+                                  StartDownloadEvent(
+                                    video: video,
+                                    quality: option,
                                   ),
+                                );
+                                context.read<ButtomNavCubit>().selectItem(
+                                  NavItem.library,
                                 );
                                 Navigator.pop(context);
                               },

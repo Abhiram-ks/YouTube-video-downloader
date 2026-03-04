@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,25 @@ class VideoPlayerCubit extends Cubit<VideoPlayerState> {
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
 
-  Future<void> initializePlayer(String url) async {
+  Future<void> initializePlayer(
+    String pathOrUrl, {
+    bool isLocal = false,
+  }) async {
     emit(const VideoPlayerLoading());
 
     try {
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
+      if (isLocal) {
+        final file = File(pathOrUrl);
+        if (!await file.exists()) {
+          emit(const VideoPlayerError("Local video file not found."));
+          return;
+        }
+        _videoPlayerController = VideoPlayerController.file(file);
+      } else {
+        _videoPlayerController = VideoPlayerController.networkUrl(
+          Uri.parse(pathOrUrl),
+        );
+      }
 
       await _videoPlayerController!.initialize();
 
@@ -29,7 +44,6 @@ class VideoPlayerCubit extends Cubit<VideoPlayerState> {
         allowPlaybackSpeedChanging: true,
         showControls: true,
         showSubtitles: true,
-
         placeholder: Container(
           color: AppPalette.black,
           child: const Center(
@@ -54,8 +68,8 @@ class VideoPlayerCubit extends Cubit<VideoPlayerState> {
   }
 
   @override
-  Future<void> close() {
-    _videoPlayerController?.dispose();
+  Future<void> close() async {
+    await _videoPlayerController?.dispose();
     _chewieController?.dispose();
     return super.close();
   }

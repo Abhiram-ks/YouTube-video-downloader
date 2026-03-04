@@ -1,0 +1,1 @@
+const String applogo = "assets/app_logo.jpg";

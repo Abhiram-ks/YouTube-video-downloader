@@ -1,10 +1,10 @@
+
 import 'dart:io';
 import 'package:videodownload/core/error/youtube_exeption.dart';
 import 'package:videodownload/src/domain/entity/video_details.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class YoutubeExplodeService {
-
   YoutubeExplodeService._internal();
 
   static final YoutubeExplodeService _instance =
@@ -54,36 +54,33 @@ class YoutubeExplodeService {
         "Video unavailable: It may be private or restricted.",
       );
     } on ArgumentError catch (e) {
-      throw YoutubeServiceException(
-        "Check your link: ${e.message}"
-      );
+      throw YoutubeServiceException("Check your link: ${e.message}");
     } on SocketException {
-      throw YoutubeServiceException(
-        "No internet connection"
-      );
+      throw YoutubeServiceException("No internet connection");
     } catch (e) {
       final errorStr = e.toString().toLowerCase();
 
+      if (errorStr.contains('429') || errorStr.contains('too many requests')) {
+        throw YoutubeServiceException(
+          "Too many requests.",
+        );
+      }
+
       if (errorStr.contains('invalid video id') ||
           errorStr.contains('not a valid youtube url')) {
-        throw YoutubeServiceException(
-          "Please enter a valid YouTube URL."
-        );
+        throw YoutubeServiceException("Please enter a valid YouTube URL.");
       }
 
       if (errorStr.contains('video is unavailable')) {
-        throw YoutubeServiceException(
-          "This video is currently unavailable."
-        );
+        throw YoutubeServiceException("This video is currently unavailable.");
       }
 
       throw YoutubeServiceException(
-        "Could not analyze video. Please try again."
+        "Could not analyze video. Please try again.",
       );
     }
   }
 
-  /// Closes the [YoutubeExplode] client instance.
   void dispose() {
     _yt.close();
   }

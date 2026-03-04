@@ -4,8 +4,10 @@ import 'package:videodownload/core/di/di.dart';
 import 'package:videodownload/core/theme/app_palette.dart';
 import 'package:videodownload/src/presentation/screen/home/home_screen.dart';
 import 'package:videodownload/src/presentation/screen/library/library_screen.dart';
-import 'package:videodownload/src/presentation/state/bloc/video_analyse_bloc/bloc/video_analyse_bloc.dart';
-import 'package:videodownload/src/presentation/state/cubit/nav_cubit.dart';
+import 'package:videodownload/src/presentation/state/bloc/video_analyse_bloc/video_analyse_bloc.dart';
+import 'package:videodownload/src/presentation/state/bloc/download_bloc/download_bloc.dart';
+import 'package:videodownload/src/presentation/state/cubit/library_cubit/library_cubit/library_cubit.dart';
+import 'package:videodownload/src/presentation/state/cubit/navi_cubit/nav_cubit.dart';
 import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 
 const double bottomNavBarHeight = 70.0;
@@ -22,6 +24,8 @@ class BottomNavigationControllers extends StatelessWidget {
         BlocProvider(create: (context) => ButtomNavCubit()),
         BlocProvider(create: (context) => ProgresserCubit()),
         BlocProvider(create: (context) => sl<VideoAnalyseBloc>()),
+        BlocProvider(create: (context) => sl<DownloadBloc>()),
+        BlocProvider(create: (context) => sl<LibraryCubit>()),
       ],
       child: Theme(
         data: Theme.of(context).copyWith(
