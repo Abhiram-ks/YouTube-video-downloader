@@ -50,87 +50,85 @@ class LibraryScreen extends StatelessWidget {
         ),
         child: BlocConsumer<DownloadBloc, DownloadState>(
           listener: (context, state) {
-            if(state is DownloadFailure){
+            if (state is DownloadFailure) {
               CustomSnackBar.show(
-                  context,
-                  message: state.error,
-                  backgroundColor: AppPalette.brickRed,
-                  textColor: AppPalette.white,
-                );
+                context,
+                message: state.error,
+                backgroundColor: AppPalette.brickRed,
+                textColor: AppPalette.white,
+              );
             }
           },
           builder: (context, downloadState) {
-                return Stack(
-                  children: [
-                    RefreshIndicator(
-                      onRefresh: () =>
-                          context.read<LibraryCubit>().refreshLibrary(),
-                      color: AppPalette.button,
-                      backgroundColor: AppPalette.white,
-                      child: BlocBuilder<LibraryCubit, LibraryState>(
-                        builder: (context, state) {
-                          if (state is LibraryLoading) {
-                            return customLoading(
-                              context: context,
-                              title: "Loading your library...",
-                            );
-                          }
-                          if (state is LibraryLoaded) {
-                            final videos = state.videos;
-                            if (videos.isEmpty) {
-                              return SingleChildScrollView(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                child: SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.7,
-                                  child: _buildEmptyState(context),
-                                ),
-                              );
-                            }
+            return Stack(
+              children: [
+                RefreshIndicator(
+                  onRefresh: () =>
+                      context.read<LibraryCubit>().refreshLibrary(),
+                  color: AppPalette.button,
+                  backgroundColor: AppPalette.white,
+                  child: BlocBuilder<LibraryCubit, LibraryState>(
+                    builder: (context, state) {
+                      if (state is LibraryLoading) {
+                        return customLoading(
+                          context: context,
+                          title: "Loading your library...",
+                        );
+                      }
+                      if (state is LibraryLoaded) {
+                        final videos = state.videos;
+                        if (videos.isEmpty) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              child: _buildEmptyState(context),
+                            ),
+                          );
+                        }
 
-                            return Padding(
-                              padding: EdgeInsets.only(top: 10.0.h),
-                              child: ListView.separated(
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16.w,
-                                  vertical: 20.h,
-                                ),
-                                itemCount: videos.length,
-                                separatorBuilder: (context, index) =>
-                                    Constant.height(10),
-                                itemBuilder: (context, index) {
-                                  final video = videos[index];
-                                  return _buildVideoCard(context, video);
-                                },
-                              ),
-                            );
-                          }
+                        return Padding(
+                          padding: EdgeInsets.only(top: 10.0.h),
+                          child: ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 20.h,
+                            ),
+                            itemCount: videos.length,
+                            separatorBuilder: (context, index) =>
+                                Constant.height(10),
+                            itemBuilder: (context, index) {
+                              final video = videos[index];
+                              return _buildVideoCard(context, video);
+                            },
+                          ),
+                        );
+                      }
 
-                          if (state is LibraryError) {
-                            return SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.7,
-                                child: Center(child: Text(state.message)),
-                              ),
-                            );
-                          }
+                      if (state is LibraryError) {
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: Center(child: Text(state.message)),
+                          ),
+                        );
+                      }
 
-                          return const SizedBox();
-                        },
-                      ),
-                    ),
-                    if (downloadState is DownloadLoading) ...[
-                      customLoading(
-                        context: context,
-                        title: "Processing your request...",
-                      ),
-                    ],
-                  ],
-                );
-              },
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+                if (downloadState is DownloadLoading) ...[
+                  customLoading(
+                    context: context,
+                    title: "Processing your request...",
+                  ),
+                ],
+              ],
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -176,41 +174,37 @@ class LibraryScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline_rounded,
-                              color: AppPalette.orange,
-                              size: 20.sp,
-                            ),
-                            Constant.width(4),
-                            Text(
-                              "Quick Help",
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: AppPalette.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
+                        buildHelpItem(
+                          icon: Icons.info_outline_rounded,
+                          text: "Quick Help",
+                          color:  AppPalette.orange,
+                          context: context,
+                          style: Theme.of(context).textTheme.bodyMedium!
+                              .copyWith(color: AppPalette.white.withValues(alpha: 0.8),fontWeight: .bold),
                         ),
                         Constant.height(12),
                         buildHelpItem(
-                          Icons.swipe_left_outlined,
-                          "Swipe left on a video to reveal options to play, retry the download, or delete the file.",
-                          context,
+                         icon: Icons.swipe_left_outlined,
+                         text:  "Swipe left on a video to reveal options to play, retry the download, or delete the file.",
+                        context:  context,
+                         style:  Theme.of(context).textTheme.labelLarge!
+                              .copyWith(color: AppPalette.white.withValues(alpha: 0.8),),
                         ),
                         Constant.height(6),
                         buildHelpItem(
-                          Icons.download_done_rounded,
-                          "Play completed videos anytime, even without an internet connection.",
-                          context,
+                         icon:  Icons.download_done_rounded,
+                          text:  "Play completed videos anytime, even without an internet connection.",
+                          context:  context,
+                         style:  Theme.of(context).textTheme.labelLarge!
+                              .copyWith(color: AppPalette.white.withValues(alpha: 0.8),),
                         ),
                         Constant.height(6),
                         buildHelpItem(
-                          Icons.refresh_rounded,
-                          "Failed downloads can be retried using the sync icon.",
-                          context,
+                         icon:  Icons.refresh_rounded,
+                         text:  "Failed downloads can be retried using the sync icon.",
+                        context:  context,
+                         style:  Theme.of(context).textTheme.labelLarge!
+                              .copyWith(color: AppPalette.white.withValues(alpha: 0.8),),
                         ),
                       ],
                     ),
@@ -545,25 +539,19 @@ class LibraryScreen extends StatelessWidget {
   }
 }
 
-Widget buildHelpItem(
-  IconData icon,
-  String text,
-  BuildContext context, {
+Widget buildHelpItem({
+  required IconData icon,
+  required TextStyle style,
+  required BuildContext context,
   Color color = AppPalette.grey,
+  required String text,
 }) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Icon(icon, color: color, size: 16.sp),
       Constant.width(8),
-      Expanded(
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: AppPalette.white.withValues(alpha: 0.8),
-          ),
-        ),
-      ),
+      Expanded(child: Text(text, style: style)),
     ],
   );
 }

@@ -1,53 +1,53 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
-import 'package:dio/dio.dart';
+import 'package:background_downloader/background_downloader.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:videodownload/core/helper/isolate_helper.dart';
 import 'package:videodownload/src/data/local/model/downloaded_video_model.dart';
 import 'package:videodownload/src/domain/entity/video_details.dart';
 
-/// Request object sent to the background isolate
-class DownloadRequest {
-  final String url;
-  final String savePath;
-  final String videoId;
-  final SendPort sendPort;
-
-  DownloadRequest({
-    required this.url,
-    required this.savePath,
-    required this.videoId,
-    required this.sendPort,
-  });
-}
-
 class DownloadService {
   final Isar isar;
+  StreamSubscription<TaskUpdate>? _updatesSubscription;
 
-  final Map<String, Isolate> _activeIsolates = {};
-  final Map<String, StreamSubscription> _activeSubscriptions = {};
-  final Map<String, ReceivePort> _activePorts = {};
+  DownloadService(this.isar) {
+    _initialize();
+  }
 
-  DownloadService(this.isar);
+  void _initialize() {
+      FileDownloader().configure(
+        globalConfig: [(Config.requestTimeout, const Duration(seconds: 30))],
+      );
+
+      FileDownloader().trackTasks();
+
+    _updatesSubscription = FileDownloader().updates.listen((update) {
+      if (update is TaskStatusUpdate) {
+        _handleStatusUpdate(update);
+      } else if (update is TaskProgressUpdate) {
+        _handleProgressUpdate(update);
+      }
+    });
+  }
 
   Future<void> startDownload(
     VideoDetails video,
     VideoQualityOption quality,
   ) async {
-    await _cleanupActiveDownload(video.id);
-
-    // 2. Prepare paths
     final directory = await getApplicationDocumentsDirectory();
-    String sanitize(String value) =>
-        value.replaceAll(RegExp(r'[^\w\-\.]'), '_');
+    String sanitize(String value) =>   value.replaceAll(RegExp(r'[^\w\-\.]'), '_');
 
-    final fileName =
-        "video_${sanitize(video.id)}_${sanitize(quality.qualityLabel)}.mp4";
-    final finalPath = "${directory.path}/$fileName";
+    final fileName = "video_${sanitize(video.id)}_${sanitize(quality.qualityLabel)}.mp4";
+    const subDirectory = 'downloads';
 
-    // 3. Update/Create DB record
+    final fullDirPath = "${directory.path}/$subDirectory";
+    final dir = Directory(fullDirPath);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+
+    final finalPath = "$fullDirPath/$fileName";
+
     final model = DownloadedVideoModel()
       ..videoId = video.id
       ..title = video.title
@@ -66,47 +66,23 @@ class DownloadService {
       await isar.downloadedVideoModels.put(model);
     });
 
-    // 4. Set up communication ports
-    final receivePort = ReceivePort();
-    _activePorts[video.id] = receivePort;
-
-    // 5. Spawn Isolate
-    final isolate = await IsolateHelper.run(
-      worker: _downloadWorker,
-      data: DownloadRequest(
-        url: quality.url,
-        savePath: finalPath,
-        videoId: video.id,
-        sendPort: receivePort.sendPort,
-      ),
+    final task = DownloadTask(
+      taskId: video.id, 
+      url: quality.url,
+      filename: fileName,
+      directory: subDirectory,
+      baseDirectory: BaseDirectory.applicationDocuments,
+      updates: Updates.statusAndProgress,
+      retries: 3,
+      allowPause: true,
+      metaData: video.id,
     );
 
-    _activeIsolates[video.id] = isolate;
-
-    // 6. Listen for worker updates
-    final subscription = receivePort.listen((message) async {
-      if (message is Map<String, dynamic>) {
-        final String type = message['type'];
-        final String vidId = message['videoId'];
-
-        if (type == 'progress') {
-          final int progress = message['progress'];
-          await _updateDB(vidId, progress, DownloadStatus.processing);
-        } else if (type == 'success') {
-          await _cleanupActiveDownload(vidId);
-          await _updateDB(vidId, 100, DownloadStatus.completed);
-        } else if (type == 'error') {
-          await _cleanupActiveDownload(vidId);
-          await _updateDB(vidId, 0, DownloadStatus.retry);
-        }
-      }
-    });
-
-    _activeSubscriptions[video.id] = subscription;
+    await FileDownloader().enqueue(task);
   }
 
   Future<void> cancelDownload(String videoId) async {
-    await _cleanupActiveDownload(videoId);
+    await FileDownloader().cancelTasksWithIds([videoId]);
 
     final existing = await isar.downloadedVideoModels
         .filter()
@@ -126,21 +102,37 @@ class DownloadService {
     }
   }
 
-  /// Kills the isolate, cancels subscription, and closes ports
-  Future<void> _cleanupActiveDownload(String videoId) async {
-    final subscription = _activeSubscriptions.remove(videoId);
-    if (subscription != null) await subscription.cancel();
+  void _handleStatusUpdate(TaskStatusUpdate update) async {
+    final videoId = update.task.taskId;
 
-    final port = _activePorts.remove(videoId);
-    if (port != null) port.close();
-
-    final isolate = _activeIsolates.remove(videoId);
-    if (isolate != null) {
-      isolate.kill(priority: Isolate.immediate);
+    switch (update.status) {
+      case TaskStatus.complete:
+        await _updateDB(videoId, 100, DownloadStatus.completed);
+        break;
+      case TaskStatus.canceled:
+        await _updateDB(videoId, 0, DownloadStatus.canceled);
+        break;
+      case TaskStatus.failed:
+      case TaskStatus.notFound:
+        await _updateDB(videoId, 0, DownloadStatus.retry);
+        break;
+      case TaskStatus.waitingToRetry:
+        await _updateDB(videoId, 0, DownloadStatus.processing);
+        break;
+      default:
+        break;
     }
   }
 
-  /// Updates Isar DB with thread safety and status protection
+  void _handleProgressUpdate(TaskProgressUpdate update) async {
+    final videoId = update.task.taskId;
+
+    if (update.progress >= 0 && update.progress <= 1.0) {
+      final int progressPercent = (update.progress * 100).toInt();
+      await _updateDB(videoId, progressPercent, DownloadStatus.processing);
+    }
+  }
+
   Future<void> _updateDB(
     String videoId,
     int progress,
@@ -154,14 +146,10 @@ class DownloadService {
             .findFirst();
 
         if (existing != null) {
-          // If the record is already completed or canceled, don't allow progress updates to overwrite it
-          if (existing.status == DownloadStatus.completed ||
-              existing.status == DownloadStatus.canceled) {
-            // Only allow status changes to 'completed' or 'canceled' if we are actually at that stage
+          if (existing.status == DownloadStatus.completed) {
             if (status == DownloadStatus.processing) return;
           }
 
-          // If we are currently processing, ensure we don't go backwards in progress
           if (status == DownloadStatus.processing &&
               existing.status == DownloadStatus.processing &&
               progress <= existing.progress) {
@@ -174,79 +162,34 @@ class DownloadService {
         }
       });
     } catch (e) {
-      // In production, consider logging this via a logger service
-      stdout.writeln('DownloadService: DB Update failed for $videoId - $e');
+      stderr.writeln('DownloadService: DB Update failed for $videoId - $e');
     }
   }
 
-  /// The Worker Isolate Entry Point (Static/Top-Level)
-  static void _downloadWorker(dynamic data) async {
-    if (data is! DownloadRequest) return;
+  Future<bool> isDownloading(String videoId) async {
+    final record = await FileDownloader().database.recordForId(videoId);
+    if (record == null) return false;
 
-    final request = data;
-    final dio = Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(minutes: 20),
-      ),
-    );
+    return record.status == TaskStatus.enqueued ||
+        record.status == TaskStatus.running ||
+        record.status == TaskStatus.waitingToRetry;
+  }
 
-    int lastProgress = -1;
-    DateTime lastUpdate = DateTime.now();
-
-    try {
-      // Ensure directory exists
-      final saveFile = File(request.savePath);
-      final dir = saveFile.parent;
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-
-      await dio.download(
-        request.url,
-        request.savePath,
-        onReceiveProgress: (received, total) {
-          if (total <= 0) return;
-
-          final progress = ((received / total) * 100).toInt();
-          final now = DateTime.now();
-
-          // Throttling: Update only if progress changed AND enough time passed OR it's 100%
-          if (progress > lastProgress &&
-              (now.difference(lastUpdate).inMilliseconds > 500 ||
-                  progress == 100)) {
-            lastProgress = progress;
-            lastUpdate = now;
-
-            request.sendPort.send({
-              'type': 'progress',
-              'progress': progress,
-              'videoId': request.videoId,
-            });
-          }
-        },
-      );
-
-      // Final verification
-      if (await saveFile.exists() && await saveFile.length() > 0) {
-        request.sendPort.send({'type': 'success', 'videoId': request.videoId});
-      } else {
-        throw Exception("Downloaded file is missing or empty");
-      }
-    } catch (e) {
-      // Cleanup partial file on error
-      try {
-        final file = File(request.savePath);
-        if (await file.exists()) await file.delete();
-      } catch (_) {}
-
-      request.sendPort.send({
-        'type': 'error',
-        'videoId': request.videoId,
-        'error': e.toString(),
-      });
-    } finally {
-      dio.close();
+  Future<void> pauseDownload(String videoId) async {
+    final task = await FileDownloader().taskForId(videoId);
+    if (task is DownloadTask) {
+      await FileDownloader().pause(task);
     }
+  }
+
+  Future<void> resumeDownload(String videoId) async {
+    final task = await FileDownloader().taskForId(videoId);
+    if (task is DownloadTask) {
+      await FileDownloader().resume(task);
+    }
+  }
+
+  void dispose() {
+    _updatesSubscription?.cancel();
   }
 }
