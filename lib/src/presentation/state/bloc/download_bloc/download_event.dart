@@ -34,3 +34,12 @@ class CancelDownloadEvent extends DownloadEvent {
   @override
   List<Object?> get props => [videoId];
 }
+
+final class SaveToGalleryEvent extends DownloadEvent {
+  final String videoId;
+
+  const SaveToGalleryEvent({required this.videoId});
+
+  @override
+  List<Object?> get props => [videoId];
+}

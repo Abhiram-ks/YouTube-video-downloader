@@ -42,3 +42,6 @@ class DownloadFailure extends DownloadState {
   @override
   List<Object?> get props => [error];
 }
+
+
+class SaveToGallerySuccess extends DownloadState {}

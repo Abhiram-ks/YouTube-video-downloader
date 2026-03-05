@@ -6,7 +6,7 @@ import 'package:videodownload/src/presentation/screen/home/home_screen.dart';
 import 'package:videodownload/src/presentation/screen/library/library_screen.dart';
 import 'package:videodownload/src/presentation/state/bloc/video_analyse_bloc/video_analyse_bloc.dart';
 import 'package:videodownload/src/presentation/state/bloc/download_bloc/download_bloc.dart';
-import 'package:videodownload/src/presentation/state/cubit/library_cubit/library_cubit/library_cubit.dart';
+import 'package:videodownload/src/presentation/state/cubit/library_cubit/library_cubit.dart';
 import 'package:videodownload/src/presentation/state/cubit/navi_cubit/nav_cubit.dart';
 import 'package:videodownload/src/presentation/state/cubit/progresser_cubit/progresser_cubit.dart';
 
@@ -35,6 +35,7 @@ class BottomNavigationControllers extends StatelessWidget {
         child: ColoredBox(
           color: AppPalette.blue.withValues(alpha: 1),
           child: SafeArea(
+            bottom: false,
             child: Scaffold(
               body: BlocBuilder<ButtomNavCubit, NavItem>(
                 builder: (context, state) {

@@ -1,6 +1,7 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:videodownload/core/common/custom_loading.dart';
 import 'package:videodownload/core/di/di.dart';
 import 'package:videodownload/core/theme/app_palette.dart';
@@ -27,7 +28,7 @@ class VideoPlayerScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppPalette.black,
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppPalette.trasprent,
           elevation: 0,
           title: Text(
             title,
@@ -35,9 +36,24 @@ class VideoPlayerScreen extends StatelessWidget {
               context,
             ).textTheme.titleMedium?.copyWith(color: AppPalette.white),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppPalette.white),
-            onPressed: () => Navigator.pop(context),
+          leading: Padding(
+            padding: EdgeInsets.all(12.w),
+            child: InkWell(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppPalette.button,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: AppPalette.white,
+                    size: 16.sp,
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
         body: SafeArea(
@@ -59,7 +75,7 @@ class VideoPlayerScreen extends StatelessWidget {
                   );
                 } else if (state is VideoPlayerError) {
                   return Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: EdgeInsets.all(20.0.sp),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

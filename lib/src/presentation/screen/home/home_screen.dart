@@ -32,11 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title: Text(
             "YouTube Save",
-            style: TextStyle(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppPalette.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20.sp,
+              fontWeight: .bold,
             ),
+            textAlign: TextAlign.center,
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
