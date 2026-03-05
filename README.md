@@ -52,7 +52,7 @@ graph TD
 
 
 
-## 🛠️ Technology Stack
+# Technology Stack
 
 | Category | Tool / Package | Purpose |
 | :--- | :--- | :--- |
