@@ -23,7 +23,7 @@ class RunApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (_, child) {
         return MaterialApp.router(
-          title: 'Cinematic Stream',
+          title: 'iSARGO',
           theme: AppTheme.lightTheme,
           debugShowCheckedModeBanner: false,
           routerConfig: AppRoute.instance.router,
