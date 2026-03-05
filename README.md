@@ -2,12 +2,12 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+[![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtube.com)
+[![Isar](https://img.shields.io/badge/Database-Isar-blue?style=for-the-badge&logo=sqlite&logoColor=white)](https://isar.dev)
 [![Clean Architecture](https://img.shields.io/badge/Architecture-Clean-green?style=for-the-badge)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 **iSARGO : Cinematic Stream** is a premium, open-source YouTube video downloader designed for high performance and a seamless user experience. Built with a focus on simplicity, it empowers users to download and watch their favorite content offline without interruptions.
 
----
 
 # Key Features
 
@@ -50,7 +50,7 @@ graph TD
     end
 ```
 
----
+
 
 ## 🛠️ Technology Stack
 
@@ -71,79 +71,16 @@ graph TD
 | **Models**| `equatable` | Simplified object comparison for state management. |
 | **Testing** | `flutter_test` | Unit and widget testing to maintain code quality. |
 
----
 
-## 🚀 How It Works
+# How It Works
 
 1. **Analyze**: Paste a YouTube link. The app uses `youtube_explode_dart` to fetch video details and available streams.
 2. **Download**: Choose your quality. The `background_downloader` initiates a download task that runs independently of the main UI thread.
 3. **Store**: Metadata is cached in **Isar DB** for offline browsing.
 4. **Access**: Watch videos in the app's cinematic player or save them to your **Gallery** using the `gal` package.
 
----
 
-## 🛠️ Getting Started
-
-### Prerequisites
-
-- Flutter SDK (Latest Version)
-- Dart SDK
-- Android Studio / VS Code
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Abhiram-ks/YouTube-video-downloader.git
-   ```
-
-2. **Navigate to the project directory**:
-   ```bash
-   cd YouTube-video-downloader
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   flutter pub get
-   ```
-
-4. **Run the build runner (for Isar models)**:
-   ```bash
-   dart run build_runner build
-   ```
-
-5. **Run the app**:
-   ```bash
-   flutter run
-   ```
-
----
-
-## 🧪 Testing
-
-We prioritize code reliability. Our testing suite uses `flutter_test` for:
-- **Unit Testing**: Validating business logic in Use Cases and Repositories.
-- **Widget Testing**: Ensuring UI components behave as expected under different states.
-
-Run tests using:
-```bash
-flutter test
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open an issue or submit a pull request if you have ideas for improvements.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 <p align="center">
-  Made with ❤️ by Abhiram-ks
+  @2026 developed by Abhiram-ks
 </p>
