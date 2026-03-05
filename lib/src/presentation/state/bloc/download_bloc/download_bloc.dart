@@ -1,27 +1,29 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:videodownload/core/service/download_service.dart';
-import 'package:videodownload/core/service/youtube_explode_service.dart';
 import 'package:videodownload/src/data/local/model/downloaded_video_model.dart';
 import 'package:videodownload/src/domain/entity/video_details.dart';
+import 'package:videodownload/src/domain/usecase/download_usecase.dart';
+import 'package:videodownload/src/domain/usecase/video_usecase.dart';
 
 part 'download_event.dart';
 part 'download_state.dart';
 
 class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
-  final DownloadService _downloadService;
-  final YoutubeExplodeService _youtubeService;
+  final DownloadUseCase _downloadUseCase;
+  final VideoUsecase _videoUseCase;
 
   DownloadBloc({
-    required DownloadService downloadService,
-    required YoutubeExplodeService youtubeService,
-  }) : _downloadService = downloadService,
-       _youtubeService = youtubeService,
+    required DownloadUseCase downloadUseCase,
+    required VideoUsecase videoUseCase,
+  }) : _downloadUseCase = downloadUseCase,
+       _videoUseCase = videoUseCase,
        super(DownloadInitial()) {
     on<StartDownloadEvent>(_onStartDownload);
     on<RetryDownloadEvent>(_onRetryDownload);
     on<CancelDownloadEvent>(_onCancelDownload);
+    on<SaveToGalleryEvent>(_onSaveToGallery);
   }
 
   Future<void> _onStartDownload(
@@ -29,7 +31,7 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
     Emitter<DownloadState> emit,
   ) async {
     try {
-      await _downloadService.startDownload(event.video, event.quality);
+      await _downloadUseCase.startDownload(event.video, event.quality);
     } catch (e) {
       emit(DownloadFailure(error: e.toString()));
     }
@@ -42,7 +44,7 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
     emit(const DownloadLoading());
     try {
       await (() async {
-        final details = await _youtubeService.getVideoDetails(
+        final details = await _videoUseCase.call(
           "https://www.youtube.com/watch?v=${event.videoModel.videoId}",
         );
         final quality = details.qualityOptions.firstWhere(
@@ -50,7 +52,7 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
           orElse: () => details.qualityOptions.first,
         );
 
-        await _downloadService.startDownload(details, quality);
+        await _downloadUseCase.startDownload(details, quality);
       })().timeout(const Duration(minutes: 5));
 
       emit(const DownloadInitial());
@@ -72,7 +74,7 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
   ) async {
     emit(const DownloadLoading());
     try {
-      await _downloadService
+      await _downloadUseCase
           .cancelDownload(event.videoId)
           .timeout(const Duration(minutes: 5));
       emit(const DownloadInitial());
@@ -83,6 +85,20 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
         ),
       );
     } catch (e) {
+      emit(DownloadFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onSaveToGallery(
+    SaveToGalleryEvent event,
+    Emitter<DownloadState> emit,
+  ) async {
+    emit(const DownloadLoading());
+    try {
+      await _downloadUseCase.saveToGallery(event.videoId);
+      emit(SaveToGallerySuccess());
+    } catch (e) {
+      log(e.toString());
       emit(DownloadFailure(error: e.toString()));
     }
   }

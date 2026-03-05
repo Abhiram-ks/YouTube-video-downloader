@@ -3,23 +3,26 @@ import 'dart:io';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:videodownload/core/service/gallery_service.dart';
 import 'package:videodownload/src/data/local/model/downloaded_video_model.dart';
 import 'package:videodownload/src/domain/entity/video_details.dart';
 
 class DownloadService {
   final Isar isar;
+  final GalleryService _galleryService;
   StreamSubscription<TaskUpdate>? _updatesSubscription;
 
-  DownloadService(this.isar) {
+  DownloadService({required this.isar, required GalleryService galleryService})
+    : _galleryService = galleryService {
     _initialize();
   }
 
   void _initialize() {
-      FileDownloader().configure(
-        globalConfig: [(Config.requestTimeout, const Duration(seconds: 30))],
-      );
+    FileDownloader().configure(
+      globalConfig: [(Config.requestTimeout, const Duration(seconds: 30))],
+    );
 
-      FileDownloader().trackTasks();
+    FileDownloader().trackTasks();
 
     _updatesSubscription = FileDownloader().updates.listen((update) {
       if (update is TaskStatusUpdate) {
@@ -35,9 +38,11 @@ class DownloadService {
     VideoQualityOption quality,
   ) async {
     final directory = await getApplicationDocumentsDirectory();
-    String sanitize(String value) =>   value.replaceAll(RegExp(r'[^\w\-\.]'), '_');
+    String sanitize(String value) =>
+        value.replaceAll(RegExp(r'[^\w\-\.]'), '_');
 
-    final fileName = "video_${sanitize(video.id)}_${sanitize(quality.qualityLabel)}.mp4";
+    final fileName =
+        "video_${sanitize(video.id)}_${sanitize(quality.qualityLabel)}.mp4";
     const subDirectory = 'downloads';
 
     final fullDirPath = "${directory.path}/$subDirectory";
@@ -67,7 +72,7 @@ class DownloadService {
     });
 
     final task = DownloadTask(
-      taskId: video.id, 
+      taskId: video.id,
       url: quality.url,
       filename: fileName,
       directory: subDirectory,
@@ -187,6 +192,19 @@ class DownloadService {
     if (task is DownloadTask) {
       await FileDownloader().resume(task);
     }
+  }
+
+  Future<void> saveToGallery(String videoId) async {
+    final existing = await isar.downloadedVideoModels
+        .filter()
+        .videoIdEqualTo(videoId)
+        .findFirst();
+
+    if (existing == null) {
+      throw Exception('Video not found in database');
+    }
+
+    await _galleryService.saveVideo(existing.filePath);
   }
 
   void dispose() {

@@ -25,6 +25,7 @@ class RunApp extends StatelessWidget {
         return MaterialApp.router(
           title: 'Cinematic Stream',
           theme: AppTheme.lightTheme,
+          debugShowCheckedModeBanner: false,
           routerConfig: AppRoute.instance.router,
           builder: (context, child) {
             return MediaQuery(
