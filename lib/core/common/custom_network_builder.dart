@@ -41,7 +41,7 @@ Widget customNetworkBuilder({
       placeholder: (context, url) => Container(
         width: width,
         height: height,
-        decoration: (decoration ?? const BoxDecoration()).copyWith(
+        decoration: BoxDecoration(
           color: AppPalette.hint.withValues(alpha: 0.1),
           borderRadius: borderRadius,
         ),
@@ -79,7 +79,7 @@ Widget customNetworkBuilder({
         return Container(
           width: width,
           height: height,
-          decoration: (decoration ?? const BoxDecoration()).copyWith(
+          decoration: BoxDecoration(
             color: AppPalette.hint.withValues(alpha: 0.1),
             borderRadius: borderRadius,
           ),
@@ -103,9 +103,7 @@ Widget customNetworkBuilder({
         return Container(
           width: width,
           height: height,
-          decoration: (decoration ?? const BoxDecoration()).copyWith(
-            borderRadius: borderRadius,
-          ),
+          decoration: BoxDecoration(borderRadius: borderRadius),
           clipBehavior: Clip.antiAlias,
           child: child,
         );

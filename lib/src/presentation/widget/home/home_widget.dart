@@ -65,12 +65,16 @@ void showVideoDetails({
                           },
                           child: Stack(
                             children: [
-                              customNetworkBuilder(
-                                imageUrl: video.thumbnailUrl,
-                                aspectRatio: 16 / 9,
-                                boxfit: BoxFit.cover,
-                                width: double.infinity,
-                                borderRadius: BorderRadius.circular(16.r),
+                              ClipRRect(
+                                clipBehavior: Clip.antiAlias,
+                                borderRadius: BorderRadius.circular(12.r),
+                                child: customNetworkBuilder(
+                                  imageUrl: video.thumbnailUrl,
+                                  aspectRatio: 16 / 9,
+                                  boxfit: BoxFit.cover,
+                                  width: double.infinity,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
                               ),
                               Positioned.fill(
                                 child: Center(
@@ -135,10 +139,14 @@ void showVideoDetails({
                               ),
                             ),
                             Constant.width(8),
-                            Text(
-                              video.author,
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(color: AppPalette.grey),
+                            Expanded(
+                              child: Text(
+                                video.author,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppPalette.grey),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
